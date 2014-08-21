@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Pyvalid by uzumaxy</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Pyvalid</h1>
+        <h2>Python values validator</h2>
+        <a href="https://github.com/uzumaxy/pyvalid" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="pyvalid" class="anchor" href="#pyvalid"><span class="octicon octicon-link"></span></a>pyvalid</h1>
+
+<p>Python validation tool, which is used for checking function's input parameters and return values.
+Module consists of two decorators: <code>accepts</code> and <code>returns</code>.</p>
+
+<h4>
+<a name="acceptsaccepted_arg_values" class="anchor" href="#acceptsaccepted_arg_values"><span class="octicon octicon-link"></span></a><code>accepts(*accepted_arg_values)</code>
+</h4>
+
+<p>A decorator for validating types and values of input parameters of a given function.
+You can pass the set of accepted types and values as decorator's input parameters.
+Validation process can raise the following exceptions:</p>
+
+<ul>
+<li>
+<code>pyvalid.InvalidArgumentNumberError</code> — when the number or position of arguments supplied to a function is incorrect.</li>
+<li>
+<code>pyvalid.ArgumentValidationError</code> — when the type of an argument to a function is not what it should be.</li>
+</ul><h4>
+<a name="returnsaccepted_returns_values" class="anchor" href="#returnsaccepted_returns_values"><span class="octicon octicon-link"></span></a><code>returns(*accepted_returns_values)</code>
+</h4>
+
+<p>A decorator for validating the return value of a given function.
+You can pass the set of accepted types and values as a decorator's input parameters.
+Validation process can raise <code>pyvalid.InvalidReturnType</code> when the return value is not in the collection of supported values and types.</p>
+
+<h2>
+<a name="how-to-install" class="anchor" href="#how-to-install"><span class="octicon octicon-link"></span></a>How to install</h2>
+
+<p>With PyPI: <code>pip install -U pyvalid</code><br>
+Manually: <code>python setup.py install</code></p>
+
+<h3>
+<a name="example-of-usage" class="anchor" href="#example-of-usage"><span class="octicon octicon-link"></span></a>Example of usage</h3>
+
+<p>Function calc in example below has next limitations:</p>
+
+<ul>
+<li>Can return only int or float value;</li>
+<li>First parameter must be only of type str;</li>
+<li>Second parameter must be of type int or equals to 2.0;</li>
+<li>Third parameter must be of type int or float.</li>
+</ul><pre><code>from pyvalid import accepts, returns
+
+
+@returns(int, float)
+@accepts(str, (int, 2.0), (int, float))
+def calc(operator, val1, val2, val3):
+    expression = '{v1} {op} {v2} {op} {v3}'.format(
+        op=operator,
+        v1=val1, v2=val2, v3=val3
+    )
+    return eval(expression)
+
+
+# Returns int value: 24.
+print(calc('*', 2, 3, 4))
+
+# Returns float value: 24.0.
+print(calc(operator='*', val1=2, val2=3.0, val3=4))
+
+# Returns float value: 24.0.
+print(calc('*', 2.0, 3, 4))
+
+# Raise pyvalid.ArgumentValidationError exception,
+# because second argument has unsupported value.
+print(calc('*', 3.14, 3, 4))
+
+
+# Raise pyvalid.InvalidReturnType exception,
+# because returns value is of type str.
+print(calc('*', 2, 3, '"4"'))
+</code></pre>
+
+<p>Here is an example of usage <code>pyvalid</code> module in context of classes.</p>
+
+<pre><code>from pyvalid import accepts, returns
+from collections import Iterable
+
+class SqlDriver(object):
+
+    @returns(bool)
+    @accepts(object, str, int, str, str, str)
+    def connect(self, host, port, user, password, database):
+        return True
+
+    @returns(bool)
+    def close(self):
+        return True
+
+    @returns(None, dict)
+    @accepts(object, str, Iterable)
+    def query(self, sql, params=None):
+        return None
+
+sql_driver = SqlDriver()
+
+sql_driver.connect('8.8.8.8', 1433, 'admin', 'password', 'programming')
+
+sql = r'SELECT * FROM ProgrammingLang'
+pl = sql_driver.query(sql)
+
+sql = r'SELECT * FROM ProgrammingLang WHERE name=?'
+python_pl = sql_driver.query(sql, ('Python',))
+
+sql_driver.close()
+</code></pre>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/uzumaxy/pyvalid/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/uzumaxy/pyvalid/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/uzumaxy/pyvalid"></a> is maintained by <a href="https://github.com/uzumaxy">uzumaxy</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
