@@ -64,7 +64,7 @@ Manually: <code>python setup.py install</code></p>
 <h3>
 <a name="example-of-usage" class="anchor" href="#example-of-usage"><span class="octicon octicon-link"></span></a>Example of usage</h3>
 
-<p>Function calc in example below has next limitations:</p>
+<p>Function <code>calc</code> in example below has next limitations:</p>
 
 <ul>
 <li>Can return only int or float value;</li>
@@ -103,30 +103,64 @@ print(calc('*', 3.14, 3, 4))
 print(calc('*', 2, 3, '"4"'))
 </code></pre>
 
-<p>Here is an example of usage <code>pyvalid</code> module in context of classes.</p>
+<p>Here is an example of usage <code>pyvalid</code> module in context of classes.
+Pay attention to the method <code>connect</code> of the class <code>SqlDriver</code>.
+This method is a good demonstration of usage <code>accepts</code> decorator for functions with keyword arguments.</p>
 
 <pre><code>from pyvalid import accepts, returns
 from collections import Iterable
 
+
 class SqlDriver(object):
 
     @returns(bool)
-    @accepts(object, str, int, str, str, str)
-    def connect(self, host, port, user, password, database):
-        return True
+    @accepts(object, host=str, port=int, usr=str, pwd=str, db=[str, None])
+    def connect(self, **kwargs):
+        connection_string = \
+            'tsql -S {host} -p {port} -U {usr} -P {pwd} -D {db}'.format(**kwargs)
+        try:
+            print('Establishing connection: "{}"'.format(connection_string))
+            # Create connection..
+            success = True
+        except:
+            success = False
+        return success
 
     @returns(bool)
     def close(self):
-        return True
+        try:
+            print('Closing connection')
+            # Close connection..
+            success = True
+        except:
+            success = False
+        return success
 
     @returns(None, dict)
     @accepts(object, str, Iterable)
     def query(self, sql, params=None):
-        return None
+        try:
+            query_info = 'Processing request "{}"'.format(sql)
+            if params is not None:
+                query_info += ' with following params: ' + ', '.join(params)
+            print(query_info)
+            # Process request..
+            data = dict()
+        except:
+            data = None
+        return data
+
 
 sql_driver = SqlDriver()
 
-sql_driver.connect('8.8.8.8', 1433, 'admin', 'password', 'programming')
+conn_params = {
+    'host': '8.8.8.8',
+    'port': 1433,
+    'usr': 'admin',
+    'pwd': 'Super_Mega_Strong_Password_2000',
+    'db': 'info_tech'
+}
+sql_driver.connect(**conn_params)
 
 sql = r'SELECT * FROM ProgrammingLang'
 pl = sql_driver.query(sql)
