@@ -32,14 +32,16 @@
 <a name="pyvalid" class="anchor" href="#pyvalid"><span class="octicon octicon-link"></span></a>pyvalid</h1>
 
 <p>Python validation tool, which is used for checking function's input parameters and return values.
-Module consists of two decorators: <code>accepts</code> and <code>returns</code>.</p>
+This module can be very helpful on the develop stage of the project, when control for accepted and returned function values is a one of most important things.</p>
+
+<p>Module consists of two decorators: <code>accepts</code> and <code>returns</code>.</p>
 
 <h4>
 <a name="acceptsaccepted_arg_values" class="anchor" href="#acceptsaccepted_arg_values"><span class="octicon octicon-link"></span></a><code>accepts(*accepted_arg_values)</code>
 </h4>
 
 <p>A decorator for validating types and values of input parameters of a given function.
-You can pass the set of accepted types and values as decorator's input parameters.
+You can pass the set of accepted types and values or validation function as decorator's input parameters.
 Validation process can raise the following exceptions:</p>
 
 <ul>
@@ -52,7 +54,7 @@ Validation process can raise the following exceptions:</p>
 </h4>
 
 <p>A decorator for validating the return value of a given function.
-You can pass the set of accepted types and values as a decorator's input parameters.
+You can pass the set of accepted types and values or validation function as a decorator's input parameters.
 Validation process can raise <code>pyvalid.InvalidReturnType</code> when the return value is not in the collection of supported values and types.</p>
 
 <h2>
@@ -84,13 +86,13 @@ def calc(operator, val1, val2, val3):
     return eval(expression)
 
 
-# Returns int value: 24.
+# Output: 24.
 print(calc('*', 2, 3, 4))
 
-# Returns float value: 24.0.
+# Output: 24.0.
 print(calc(operator='*', val1=2, val2=3.0, val3=4))
 
-# Returns float value: 24.0.
+# Output: 24.0.
 print(calc('*', 2.0, 3, 4))
 
 # Raise pyvalid.ArgumentValidationError exception,
@@ -169,6 +171,82 @@ sql = r'SELECT * FROM ProgrammingLang WHERE name=?'
 python_pl = sql_driver.query(sql, ('Python',))
 
 sql_driver.close()
+</code></pre>
+
+<p>Following example with class <code>User</code> will show you how to use <code>pyvalid</code> module to validate some value with using validation function.</p>
+
+<pre><code>from pyvalid import accepts
+
+
+class User(object):
+
+    class Validator(object):
+
+        unsafe_passwords = [
+            '111111', '000000', '123123',
+            '123456', '12345678', '1234567890',
+            'qwerty', 'sunshine', 'password',
+        ]
+
+        @classmethod
+        def login_checker(cls, login):
+            is_valid = isinstance(login, str) and 1 &lt;= len(login) &lt;= 16
+            if is_valid:
+                for reg_user in User.registered:
+                    if login == reg_user.login:
+                        is_valid = False
+                        break
+            return is_valid
+
+        @classmethod
+        def password_checker(cls, password):
+            is_valid = isinstance(password, str) and \
+                (6 &lt;= len(password) &lt;= 32) and \
+                (password not in cls.unsafe_passwords)
+            return is_valid
+
+    registered = list()
+
+    def __init__(self, login, password):
+        self.__login = None
+        self.login = login
+        self.__password = None
+        self.password = password
+        User.registered.append(self)
+
+    @property
+    def login(self):
+        return self.__login
+
+    @login.setter
+    @accepts(object, Validator.login_checker)
+    def login(self, value):
+        self.__login = value
+
+    @property
+    def password(self):
+        return self.__password
+
+    @password.setter
+    @accepts(object, Validator.password_checker)
+    def password(self, value):
+        self.__password = value
+
+
+user = User('admin', 'Super_Mega_Strong_Password_2000')
+
+# Output: admin Super_Mega_Strong_Password_2000
+print(user.login, user.password)
+
+# Raise pyvalid.ArgumentValidationError exception,
+# because User.Validator.password_checker method
+# returns False value.
+user.password = 'qwerty'
+
+# Raise pyvalid.ArgumentValidationError exception,
+# because User.Validator.login_checker method
+# returns False value.
+user = User('admin', 'Super_Mega_Strong_Password_2001')
 </code></pre>
         </section>
 
