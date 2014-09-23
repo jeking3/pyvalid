@@ -176,6 +176,7 @@ sql_driver.close()
 <p>Following example with class <code>User</code> will show you how to use <code>pyvalid</code> module to validate some value with using validation function.</p>
 
 <pre><code>from pyvalid import accepts
+from pyvalid.validators import is_validator
 
 
 class User(object):
@@ -189,6 +190,7 @@ class User(object):
         ]
 
         @classmethod
+        @is_validator
         def login_checker(cls, login):
             is_valid = isinstance(login, str) and 1 &lt;= len(login) &lt;= 16
             if is_valid:
@@ -199,6 +201,7 @@ class User(object):
             return is_valid
 
         @classmethod
+        @is_validator
         def password_checker(cls, password):
             is_valid = isinstance(password, str) and \
                 (6 &lt;= len(password) &lt;= 32) and \
